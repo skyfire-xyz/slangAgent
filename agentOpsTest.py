@@ -1,9 +1,9 @@
 import agentops
 import os
-import requests
 from agentops.agent import track_agent
 from openai import OpenAI
 from dotenv import load_dotenv
+from agentops import record_function
 
 load_dotenv()
 SKYFIRE_API_KEY = os.getenv('SKYFIRE_API_KEY')
@@ -21,7 +21,7 @@ client = OpenAI(
     api_key=OPEN_AI_API_KEY,
     base_url="https://api.skyfire.xyz/proxy/openrouter/v1",
 )
-# Example usage of OpenAI
+
 
 @track_agent(name="skyfire")
 class SkyfireAgent:
