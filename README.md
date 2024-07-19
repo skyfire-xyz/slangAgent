@@ -1,5 +1,5 @@
 # slangAgent
 
 source venv/bin/activate
-python app.py
+python3 app.py
 
