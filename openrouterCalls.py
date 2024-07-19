@@ -70,3 +70,10 @@ async def getResponses(prompt: str):
     responses = await asyncio.gather(*[getAResponse(model) for model in models])
     # TODO: see if needed to concatenate into one string?
     return responses
+
+
+def main():
+    response = skyfire_agent.completion("What is 2+2", "openai/gpt-4o", "assistant")
+    print(response)
+if __name__ == "__main__":
+    main()
