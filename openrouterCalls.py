@@ -54,7 +54,7 @@ def getCriteria(prompt: str):
     return response
 
 
-async def getResponses(prompt: str):
+def getResponses(prompt: str):
     sysPrompt = "In English, write a brief (2 sentences max) conversational response to the prompt. Output just the response."
     models = [
         "anthropic/claude-3.5-sonnet",
@@ -62,19 +62,20 @@ async def getResponses(prompt: str):
         "openai/gpt-4o",
     ]  # TODO: change hardcode
 
-    async def getAResponse(model):
-        response = await skyfire_agent.completion(prompt, model, sysPrompt)
-        return (
-            response if response else f"Failed to generate response for model ${model}"
-        )
-
-    responses = await asyncio.gather(*[getAResponse(model) for model in models])
-    # TODO: see if needed to concatenate into one string?
-    return responses
+    responses = '\n'
+    print(len(models))
+    for model in models:
+        response = skyfire_agent.completion(prompt, model, sysPrompt)
+        if response is None:
+            print(f"Failed to generate response for model ${model}")
+            exit()
+        responses = responses + model + ':\n' + response + '\n\n'
+    return responses 
 
 
 def main():
-    response = skyfire_agent.completion("What is 2+2", "openai/gpt-4o", "assistant")
-    print(response)
+    # response = skyfire_agent.completion("What is 2+2", "openai/gpt-4o", "assistant")
+    # print(response)
+    print(getResponses('how did the chicken cross the road?'))
 if __name__ == "__main__":
     main()
