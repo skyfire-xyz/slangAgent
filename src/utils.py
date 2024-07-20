@@ -33,17 +33,14 @@ class SkyfireAgent:
     def completion(
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
-        raw_response = client.chat.completions.with_raw_response.create(
+        raw_response = client.chat.completions.create(
             model=_model,
             messages=[
                 {"role": "system", "content": sysprompt},
                 {"role": "user", "content": prompt},
             ],
         )
-        # logger.info('HIEU')
-        # logger.info(raw_response.headers)
-        response = raw_response.parse()
-        return response.choices[0].message.content
+        return raw_response.choices[0].message.content
 
 
 skyfire_agent = SkyfireAgent(client)
@@ -76,6 +73,7 @@ def getResponses(prompt: str):
 
 def getBestResponse(prompt: str, criteria: str, responses: str):
     sysPrompt = f"Use the criteria {criteria} to score the responses to: {prompt}. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one. Limit line breaks."
+    prompt = sysPrompt + responses
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
     return response
 
