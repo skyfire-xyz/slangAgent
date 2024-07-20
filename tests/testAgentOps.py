@@ -18,8 +18,8 @@ agentops.init(AGENT_OPS_API_KEY)
 
 client = OpenAI(
     default_headers={"Skyfire-API-Key": SKYFIRE_API_KEY},
-    api_key=OPEN_AI_API_KEY,
-    base_url="https://api.skyfire.xyz/proxy/openrouter/v1",
+    api_key=SKYFIRE_API_KEY,
+    base_url="http://localhost:3000/proxy/openrouter/v1",
 )
 
 
