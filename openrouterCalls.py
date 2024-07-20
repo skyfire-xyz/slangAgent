@@ -13,15 +13,14 @@ logger = logging.getLogger("SlangClient")
 
 load_dotenv()
 SKYFIRE_API_KEY = os.getenv("SKYFIRE_API_KEY")
-OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
 AGENT_OPS_API_KEY = os.getenv("AGENT_OPS_API_KEY")
 
 OPEN_ROUTER = "OpenRouter"
 
 client = OpenAI(
     default_headers={"Skyfire-API-Key": SKYFIRE_API_KEY},
-    api_key=OPEN_AI_API_KEY,
-    base_url="https://api.skyfire.xyz/proxy/openrouter/v1",
+    api_key=SKYFIRE_API_KEY,
+    base_url="http://localhost:3000/proxy/openrouter/v1",
 )
 
 
@@ -32,14 +31,16 @@ class SkyfireAgent:
     def completion(
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
-        response = client.chat.completions.create(
+        raw_response = client.chat.completions.with_raw_response.create(
             model=_model,
             messages=[
                 {"role": "system", "content": sysprompt},
                 {"role": "user", "content": prompt},
             ],
         )
-        logger.info(response)
+        logger.info('HIEU')
+        logger.info(raw_response.headers)
+        response = raw_response.parse()
         return response.choices[0].message.content
 
 
