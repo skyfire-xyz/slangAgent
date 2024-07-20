@@ -3,9 +3,8 @@ import os
 from agentops.agent import track_agent
 from openai import OpenAI
 from dotenv import load_dotenv
-from agentops import record_function
+from agentops import record_function, ActionEvent
 import logging
-import asyncio
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -17,13 +16,15 @@ AGENT_OPS_API_KEY = os.getenv("AGENT_OPS_API_KEY")
 
 OPEN_ROUTER = "OpenRouter"
 
+agentops.init(AGENT_OPS_API_KEY)
+
 client = OpenAI(
     default_headers={"Skyfire-API-Key": SKYFIRE_API_KEY},
     api_key=SKYFIRE_API_KEY,
     base_url="http://localhost:3000/proxy/openrouter/v1",
 )
 
-
+@track_agent(name="skyfire")
 class SkyfireAgent:
     def __init__(self, client):
         self.client = client
@@ -38,8 +39,8 @@ class SkyfireAgent:
                 {"role": "user", "content": prompt},
             ],
         )
-        logger.info('HIEU')
-        logger.info(raw_response.headers)
+        # logger.info('HIEU')
+        # logger.info(raw_response.headers)
         response = raw_response.parse()
         return response.choices[0].message.content
 
@@ -72,10 +73,18 @@ def getResponses(prompt: str):
         responses = responses + model + ':\n' + response + '\n\n'
     return responses 
 
+@record_function('test')
+def some_action(message):
+    return message
 
 def main():
     # response = skyfire_agent.completion("What is 2+2", "openai/gpt-4o", "assistant")
     # print(response)
     print(getResponses('how did the chicken cross the road?'))
+    agentops.record(
+    ActionEvent(
+        action_type="Agent says hello", params={"message": "Hi"}, returns="Hi Back!"
+    )
+)
 if __name__ == "__main__":
     main()
