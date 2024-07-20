@@ -44,9 +44,9 @@ class SkyfireAgent:
         record(LLMEvent(
             prompt=prompt,
             prompt_tokens=response.usage.prompt_tokens,
-            completion="The capital of France is Paris.",
+            completion=response.choices[0].message.content,
             completion_tokens=response.usage.completion_tokens,
-            model="gpt-4"
+            model=_model
         ) )
         # logger.info('HIEU')
         logger.info(raw_response.headers)
