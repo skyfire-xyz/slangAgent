@@ -31,14 +31,16 @@ class SkyfireAgent:
     def completion(
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
-        response = client.chat.completions.create(
+        raw_response = client.chat.completions.with_raw_response.create(
             model=_model,
             messages=[
                 {"role": "system", "content": sysprompt},
                 {"role": "user", "content": prompt},
             ],
         )
-        logger.info(response)
+        logger.info('HIEU')
+        logger.info(raw_response.headers)
+        response = raw_response.parse()
         return response.choices[0].message.content
 
 
