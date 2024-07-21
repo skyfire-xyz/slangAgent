@@ -149,8 +149,8 @@ def getBufferTime(LLM_StartTime, agentOpsStartTime):
     return buffer
 
 
-def getCriteria(sysPrompt: str):
-    prompt = "Give a brief rubric with a max score of 100 to score the quality of a response to the following message. Respond with just the generic rubric."
+def getCriteria(prompt: str):
+    sysPrompt = "Give a brief rubric with a max score of 100 to score the quality of a response to the following message. Respond with just the generic rubric."
     response = skyfire_agent.completion(prompt, "openai/gpt-4o", sysPrompt)
     return response
 
@@ -176,8 +176,8 @@ def getOneModelResponse(prompt: str, model: str, sysPrompt: str):
     return f"{model}:{response}\n"
 
 
-def getAllModelResponses(sysPrompt: str):
-    prompt = "In English, write a brief (2 sentences max) conversational response to the prompt. Output just the response."
+def getAllModelResponses(prompt: str):
+    sysPrompt = "In English, write a brief (2 sentences max) conversational response to the prompt. Output just the response."
     models = getBestModels()
     responses = ""
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -198,23 +198,16 @@ def getAllModelResponses(sysPrompt: str):
 
 
 def getBestResponse(prompt: str, criteria: str, responses: str):
-    prompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one."
-    sysPrompt = f"{criteria=}\n{prompt=}\n{responses=}\n additionally output the model and there scores in the following format as the last line of your response: SCORES [modelName: score, modelName: score, ...]"
+    sysPrompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one."
+    prompt = f"{criteria=}\n{prompt=}\n{responses=}\n additionally output the model and there scores in the following format as the last line of your response: SCORES [modelName: score, modelName: score, ...]"
     response = skyfire_agent.completion(prompt, "openai/gpt-4o", sysPrompt)
 
     pattern = r"SCORES.*\[(.*)\]"
     match = re.search(pattern, response)
     if match:
-        # Extract the content inside the brackets
         content = match.group(1)
-
-        # Define the regex pattern to extract model names and scores
         model_score_pattern = r"([\w\-\/\.]+):\s*(\d+)"
-
-        # Find all matches in the content
         matches = re.findall(model_score_pattern, content)
-
-        # Print the extracted model names and scores
         for model, score in matches:
             logger.info("SCORES EXTRACTED ", model, " ", score)
             saveModelScore(prompt, score, model, response)
