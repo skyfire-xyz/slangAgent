@@ -42,35 +42,37 @@ class SkyfireAgent:
             ],
         )
         agentops.init(AGENT_OPS_API_KEY)
+        bufferTime = datetime.fromtimestamp(time.time(), tz=timezone.utc).isoformat(timespec="milliseconds")
+        buffer = getBufferTime(startTime, bufferTime)
         response = raw_response.parse()
-        record(
-            LLMEvent(
-                init_timestamp=startTime,
-                prompt=prompt,
-                prompt_tokens=response.usage.prompt_tokens,
-                completion=response.choices[0].message.content,
-                completion_tokens=response.usage.completion_tokens,
-                model=_model,
-            )
-        )
-        record(
-            ActionEvent(
-                action_type="Payment made to OPENROUTER",
-                params={
-                    "claimID": raw_response.headers["skyfire-payment-claim-id"],
-                    "amount": raw_response.headers["skyfire-payment-amount"],
-                    "currency": raw_response.headers["skyfire-payment-currency"],
-                },
-                returns="SUCCESS",
-            )
-        )
+        record(LLMEvent(
+            init_timestamp = (datetime.fromisoformat(startTime) + buffer).isoformat(timespec='milliseconds'),
+            end_timestamp = (datetime.fromtimestamp(time.time(), tz=timezone.utc) + buffer).isoformat(timespec='milliseconds'),
+            prompt=prompt,
+            prompt_tokens=response.usage.prompt_tokens,
+            completion=response.choices[0].message.content,
+            completion_tokens=response.usage.completion_tokens,
+            model=_model
+        ))
+        record(ActionEvent(
+            action_type="Payment made to OPENROUTER", 
+            params={"claimID": raw_response.headers['skyfire-payment-claim-id'], 
+                                                              "amount": raw_response.headers['skyfire-payment-amount'],
+                                                              "currency": raw_response.headers['skyfire-payment-currency']}, 
+                                                              returns="SUCCESS"
+        ))
+        # logger.info('HIEU')
         logger.info(raw_response.headers)
         return response.choices[0].message.content
 
 
 skyfire_agent = SkyfireAgent(client)
 
-
+def getBufferTime(LLM_StartTime, agentOpsStartTime):
+    callStart = datetime.fromisoformat(LLM_StartTime)
+    agentOpsStart = datetime.fromisoformat(agentOpsStartTime)
+    buffer = agentOpsStart - callStart
+    return buffer
 def getCriteria(sysPrompt: str):
     prompt = "Give a brief rubric with a max score of 100 to score the quality of a response to the following message. Respond with just the generic rubric."
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)

@@ -1,0 +1,9 @@
+###
+# Chat SlangAgent
+POST http://127.0.0.1:5000/v1/receivers/slang-agent
+skyfire-api-key: adb849e1-def1-4ae5-963e-ff26437b99c6
+content-type: application/json
+
+{
+  "prompt": "brb gtg do hw pook"
+}
