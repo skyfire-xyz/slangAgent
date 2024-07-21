@@ -129,7 +129,7 @@ def getBufferTime(LLM_StartTime, agentOpsStartTime):
 
 def getCriteria(sysPrompt: str):
     prompt = "Give a brief rubric with a max score of 100 to score the quality of a response to the following message. Respond with just the generic rubric."
-    response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
+    response = skyfire_agent.completion(prompt, "openai/gpt-4o", sysPrompt)
     return response
 
 
@@ -179,7 +179,7 @@ def getAllModelResponses(sysPrompt: str):
 def getBestResponse(prompt: str, criteria: str, responses: str):
     prompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one."
     sysPrompt = f"{criteria=}\n{prompt=}\n{responses=}\n additionally output the model and there scores in the following format as the last line of your response: SCORES [modelName: score, modelName: score, ...]"
-    response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
+    response = skyfire_agent.completion(prompt, "openai/gpt-4o", sysPrompt)
 
     pattern = r"SCORES.*\[(.*)\]"
     match = re.search(pattern, response)
