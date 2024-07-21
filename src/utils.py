@@ -45,15 +45,28 @@ class SkyfireAgent:
         bufferTime = datetime.fromtimestamp(time.time(), tz=timezone.utc).isoformat(timespec="milliseconds")
         buffer = getBufferTime(startTime, bufferTime)
         response = raw_response.parse()
-        record(LLMEvent(
-            init_timestamp = (datetime.fromisoformat(startTime) + buffer).isoformat(timespec='milliseconds'),
-            end_timestamp = (datetime.fromtimestamp(time.time(), tz=timezone.utc) + buffer).isoformat(timespec='milliseconds'),
-            prompt=prompt,
-            prompt_tokens=response.usage.prompt_tokens,
-            completion=response.choices[0].message.content,
-            completion_tokens=response.usage.completion_tokens,
-            model=_model
-        ))
+        
+
+        startLLM_call = (datetime.fromisoformat(startTime) + buffer).isoformat(timespec='milliseconds')
+        endTime = (datetime.fromtimestamp(time.time(), tz=timezone.utc) + buffer).isoformat(timespec='milliseconds')
+        prompt_tokens = response.usage.prompt_tokens
+        completion = response.choices[0].message.content
+        completion_tokens = response.usage.completion_tokens
+
+        @track_agent(name=_model)
+        def createLLM_Event(startTime, endTime, prompt, prompt_tokens, completion, completion_tokens, _model):
+            record(LLMEvent(
+                    init_timestamp = startTime,
+                    end_timestamp = endTime,
+                    prompt=prompt,
+                    prompt_tokens=prompt_tokens,
+                    completion=completion,
+                    completion_tokens=completion_tokens,
+                    model=_model
+                ))
+        
+        createLLM_Event(startLLM_call, endTime, prompt, prompt_tokens, completion, completion_tokens, _model)
+        
         record(ActionEvent(
             action_type="Payment made to OPENROUTER", 
             params={"claimID": raw_response.headers['skyfire-payment-claim-id'], 
@@ -68,11 +81,13 @@ class SkyfireAgent:
 
 skyfire_agent = SkyfireAgent(client)
 
+
 def getBufferTime(LLM_StartTime, agentOpsStartTime):
     callStart = datetime.fromisoformat(LLM_StartTime)
     agentOpsStart = datetime.fromisoformat(agentOpsStartTime)
     buffer = agentOpsStart - callStart
     return buffer
+
 def getCriteria(sysPrompt: str):
     prompt = "Give a brief rubric with a max score of 100 to score the quality of a response to the following message. Respond with just the generic rubric."
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
