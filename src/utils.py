@@ -10,7 +10,9 @@ import time
 import requests
 import concurrent.futures
 import requests
-
+import re
+import json
+from flask import abort
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("SlangClient")
 
@@ -176,20 +178,43 @@ def getAllModelResponses(sysPrompt: str):
 
 def getBestResponse(prompt: str, criteria: str, responses: str):
     prompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one."
-    sysPrompt = f"{criteria=}\n{prompt=}\n{responses=}\n additionally output the model and there scores in the following format as the last line of your response: [modelName]: [score], [modelName]: [score], ...]"
+    sysPrompt = f"{criteria=}\n{prompt=}\n{responses=}\n additionally output the model and there scores in the following format as the last line of your response: SCORES [modelName: score, modelName: score, ...]"
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
+
+    pattern = r"SCORES.*\[(.*)\]"
+    match = re.search(pattern, response)
+    if match:
+        # Extract the content inside the brackets
+        content = match.group(1)
+        
+        # Define the regex pattern to extract model names and scores
+        model_score_pattern = r"([\w\-\/\.]+):\s*(\d+)"
+        
+        # Find all matches in the content
+        matches = re.findall(model_score_pattern, content)
+        
+        # Print the extracted model names and scores
+        for model, score in matches:
+            logger.info('SCORES EXTRACTED ', model, ' ', score )
+            saveModelScore(prompt, score, model, response)
+    else:
+        logger.info("ERROR SCORES UNABLE TO BE STORED")
+
     return response
 
 
 def saveModelScore(prompt, score, modelName, responsePayload):
-    url = "http://localhost:3000/v1/receivers/slang-agent/models/best"
+    url = "http://localhost:3000/v1/receivers/slang-agent/save-score"
     headers = {
         "skyfire-api-key": SKYFIRE_API_KEY,
         "content-type": "application/json"
     }
     data = {
         "prompt": prompt,
-        "score": score,
+        "score": int(score),
         "modelName": modelName,
         "responsePayload": responsePayload
     }
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+
+
