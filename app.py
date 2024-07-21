@@ -19,15 +19,8 @@ def chat_slang_agent():
     allResponses = utils.getAllModelResponses(chatRequest["prompt"])
     bestResponse = utils.getBestResponse(chatRequest["prompt"], criteria, allResponses)
 
-    payment = {
-        "status": "SUCCESS",
-        "sourceName": "chloe",
-        "destinationName": "SlangAgent",
-        "amount": "1234",
-        "currency": "USDC"
-    }
-
-    chatResponse = {"prompt": chatRequest["prompt"], "body": bestResponse, "payment": payment}
+    chatResponse = {"prompt": chatRequest["prompt"], "body": bestResponse}
+    logger.info(chatResponse)
     return jsonify(chatResponse)
 
 

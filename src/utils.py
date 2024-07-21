@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import time
 import requests
 import concurrent.futures
+import requests
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("SlangClient")
@@ -175,11 +176,20 @@ def getAllModelResponses(sysPrompt: str):
 
 def getBestResponse(prompt: str, criteria: str, responses: str):
     prompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one."
-    sysPrompt = f"{criteria=}\n{prompt=}\n{responses=}"
+    sysPrompt = f"{criteria=}\n{prompt=}\n{responses=}\n additionally output the model and there scores in the following format as the last line of your response: [modelName]: [score], [modelName]: [score], ...]"
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
     return response
 
 
-@record_function("test")
-def some_action(message):
-    return message
+def saveModelScore(prompt, score, modelName, responsePayload):
+    url = "http://localhost:3000/v1/receivers/slang-agent/models/best"
+    headers = {
+        "skyfire-api-key": SKYFIRE_API_KEY,
+        "content-type": "application/json"
+    }
+    data = {
+        "prompt": prompt,
+        "score": score,
+        "modelName": modelName,
+        "responsePayload": responsePayload
+    }
