@@ -7,6 +7,7 @@ from agentops import record_function, ActionEvent, record, LLMEvent
 import logging
 from datetime import datetime
 import time
+import concurrent.futures
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("SlangClient")
@@ -31,7 +32,10 @@ class SkyfireAgent:
     def completion(
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
-        startTime = datetime.utcfromtimestamp(time.time()).isoformat(timespec="milliseconds") + "Z"
+        startTime = (
+            datetime.utcfromtimestamp(time.time()).isoformat(timespec="milliseconds")
+            + "Z"
+        )
         raw_response = client.chat.completions.with_raw_response.create(
             model=_model,
             messages=[
@@ -41,6 +45,7 @@ class SkyfireAgent:
         )
         agentops.init(AGENT_OPS_API_KEY)
         response = raw_response.parse()
+<<<<<<< Updated upstream
         record(LLMEvent(
             init_timestamp = startTime,
             prompt=prompt,
@@ -60,39 +65,70 @@ class SkyfireAgent:
         logger.info(raw_response.headers)
         #logger.info(response)
         
+=======
+        record(
+            LLMEvent(
+                init_timestamp=startTime,
+                prompt=prompt,
+                prompt_tokens=response.usage.prompt_tokens,
+                completion=response.choices[0].message.content,
+                completion_tokens=response.usage.completion_tokens,
+                model=_model,
+            )
+        )
+        # logger.info('HIEU')
+        # logger.info(raw_response.headers)
+        # logger.info(response)
+
+>>>>>>> Stashed changes
         return response.choices[0].message.content
+
 
 skyfire_agent = SkyfireAgent(client)
 
 
-def getCriteria(prompt: str):
-    sysPrompt = "Give a brief rubric (max score of 100) to score the quality of a response to the following message. Respond with just the generic rubric"
+def getCriteria(sysPrompt: str):
+    prompt = "Give a brief rubric with a max score of 100 to score the quality of a response to the following message. Respond with just the generic rubric."
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
     return response
 
 
-def getResponses(prompt: str):
-    sysPrompt = "In English, write a brief (2 sentences max) conversational response to the prompt. Output just the response."
+def getOneModelResponse(prompt: str, model: str, sysPrompt: str):
+    response = skyfire_agent.completion(prompt, model, sysPrompt)
+    if response is None:
+        return f"{model}:\nFailed to generate response\n"
+    return f"{model}:\n{response}\n"
+
+
+def getAllModelResponses(sysPrompt: str):
+    prompt = "In English, write a brief (2 sentences max) conversational response to the prompt. Output just the response."
     models = [
         "anthropic/claude-3.5-sonnet",
         "meta-llama/llama-3-70b-instruct",
         "openai/gpt-4o",
     ]  # TODO: change hardcode
 
-    responses = "\n"
-    print(len(models))
-    for model in models:
-        response = skyfire_agent.completion(prompt, model, sysPrompt)
-        if response is None:
-            print(f"Failed to generate response for model ${model}")
-            exit()
-        responses = responses + model + ":\n" + response + "\n\n"
+    responses = ""
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(getOneModelResponse, prompt, model, sysPrompt): model
+            for model in models
+        }
+        for future in concurrent.futures.as_completed(futures):
+            model = futures[future]
+            try:
+                result = future.result()
+                responses += result + "\n\n"
+            except Exception as exc:
+                print(f"Model {model} generated an exception: {exc}")
+                responses += f"{model}:\nError occurred\n"
+
     return responses
 
 
 def getBestResponse(prompt: str, criteria: str, responses: str):
-    sysPrompt = f"Use the criteria {criteria} to score the responses to: {prompt}. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one. Limit line breaks."
-    prompt = sysPrompt + responses
+    prompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one. Limit line breaks."
+    sysPrompt = f"{criteria=}\n{prompt=}\n{responses=}"
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
     return response
 
@@ -105,7 +141,16 @@ def some_action(message):
 def main():
     # response = skyfire_agent.completion("What is 2+2", "openai/gpt-4o", "assistant")
     # print(response)
+<<<<<<< Updated upstream
     print(getResponses("how did the chicken cross the road?"))
+=======
+    print(getAllModelResponses("how did the chicken cross the road?"))
+    agentops.record(
+        ActionEvent(
+            action_type="Agent says hello", params={"message": "Hi"}, returns="Hi Back!"
+        )
+    )
+>>>>>>> Stashed changes
 
 
 if __name__ == "__main__":
