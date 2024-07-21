@@ -13,7 +13,7 @@ import requests
 import re
 import json
 from flask import abort
-import config
+import src.config as config
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("SlangClient")

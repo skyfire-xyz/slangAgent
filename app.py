@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import logging
-import sys
-import os
+import src.config as config
 import src.utils as utils
 
 
@@ -19,9 +18,8 @@ def chat_slang_agent():
 
     payment = {
         "status": "SUCCESS",
-        "sourceName": "chloe",
         "destinationName": "SlangAgent",
-        "amount": "1234",
+        "amount": str(1007 * config.slang['models']['numModels']),
         "currency": "USDC",
     }
 
