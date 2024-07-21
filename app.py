@@ -1,3 +1,5 @@
+
+
 from flask import Flask, request, jsonify
 import logging
 import sys
@@ -17,7 +19,15 @@ def chat_slang_agent():
     allResponses = utils.getAllModelResponses(chatRequest["prompt"])
     bestResponse = utils.getBestResponse(chatRequest["prompt"], criteria, allResponses)
 
-    chatResponse = {"prompt": chatRequest["prompt"], "body": bestResponse}
+    payment = {
+        "status": "SUCCESS",
+        "sourceName": "chloe",
+        "destinationName": "SlangAgent",
+        "amount": "1234",
+        "currency": "USDC"
+    }
+
+    chatResponse = {"prompt": chatRequest["prompt"], "body": bestResponse, "payment": payment}
     return jsonify(chatResponse)
 
 

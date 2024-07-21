@@ -28,6 +28,12 @@ class SkyfireAgent:
     def __init__(self, client):
         self.client = client
 
+    def getHeaders(self, raw_response):
+        claimId = raw_response.headers["skyfire-payment-claim-id"]
+        amount = raw_response.headers["skyfire-payment-amount"]
+        currency = raw_response.headers["skyfire-payment-currency"]
+        return claimId, amount, currency
+
     def completion(
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
@@ -67,13 +73,18 @@ class SkyfireAgent:
         
         createLLM_Event(startLLM_call, endTime, prompt, prompt_tokens, completion, completion_tokens, _model)
         
-        record(ActionEvent(
-            action_type="Payment made to OPENROUTER", 
-            params={"claimID": raw_response.headers['skyfire-payment-claim-id'], 
-                                                              "amount": raw_response.headers['skyfire-payment-amount'],
-                                                              "currency": raw_response.headers['skyfire-payment-currency']}, 
-                                                              returns="SUCCESS"
-        ))
+        claimId, amount, currency = self.getHeaders(raw_response=raw_response)
+        record(
+            ActionEvent(
+                action_type="Payment made to OPENROUTER",
+                params={
+                    "claimID": claimId,
+                    "amount": amount,
+                    "currency": currency,
+                },
+                returns="SUCCESS",
+            )
+        )
         # logger.info('HIEU')
         logger.info(raw_response.headers)
         return response.choices[0].message.content
