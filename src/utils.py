@@ -7,6 +7,7 @@ from agentops import record_function, ActionEvent, record, LLMEvent
 import logging
 from datetime import datetime, timezone
 import time
+import requests
 import concurrent.futures
 
 logging.basicConfig(level=logging.DEBUG)
@@ -48,31 +49,54 @@ class SkyfireAgent:
             ],
         )
         agentops.init(AGENT_OPS_API_KEY)
-        bufferTime = datetime.fromtimestamp(time.time(), tz=timezone.utc).isoformat(timespec="milliseconds")
+        bufferTime = datetime.fromtimestamp(time.time(), tz=timezone.utc).isoformat(
+            timespec="milliseconds"
+        )
         buffer = getBufferTime(startTime, bufferTime)
         response = raw_response.parse()
-        
 
-        startLLM_call = (datetime.fromisoformat(startTime) + buffer).isoformat(timespec='milliseconds')
-        endTime = (datetime.fromtimestamp(time.time(), tz=timezone.utc) + buffer).isoformat(timespec='milliseconds')
+        startLLM_call = (datetime.fromisoformat(startTime) + buffer).isoformat(
+            timespec="milliseconds"
+        )
+        endTime = (
+            datetime.fromtimestamp(time.time(), tz=timezone.utc) + buffer
+        ).isoformat(timespec="milliseconds")
         prompt_tokens = response.usage.prompt_tokens
         completion = response.choices[0].message.content
         completion_tokens = response.usage.completion_tokens
 
         @track_agent(name=_model)
-        def createLLM_Event(startTime, endTime, prompt, prompt_tokens, completion, completion_tokens, _model):
-            record(LLMEvent(
-                    init_timestamp = startTime,
-                    end_timestamp = endTime,
+        def createLLM_Event(
+            startTime,
+            endTime,
+            prompt,
+            prompt_tokens,
+            completion,
+            completion_tokens,
+            _model,
+        ):
+            record(
+                LLMEvent(
+                    init_timestamp=startTime,
+                    end_timestamp=endTime,
                     prompt=prompt,
                     prompt_tokens=prompt_tokens,
                     completion=completion,
                     completion_tokens=completion_tokens,
-                    model=_model
-                ))
-        
-        createLLM_Event(startLLM_call, endTime, prompt, prompt_tokens, completion, completion_tokens, _model)
-        
+                    model=_model,
+                )
+            )
+
+        createLLM_Event(
+            startLLM_call,
+            endTime,
+            prompt,
+            prompt_tokens,
+            completion,
+            completion_tokens,
+            _model,
+        )
+
         claimId, amount, currency = self.getHeaders(raw_response=raw_response)
         record(
             ActionEvent(
@@ -99,10 +123,26 @@ def getBufferTime(LLM_StartTime, agentOpsStartTime):
     buffer = agentOpsStart - callStart
     return buffer
 
+
 def getCriteria(sysPrompt: str):
     prompt = "Give a brief rubric with a max score of 100 to score the quality of a response to the following message. Respond with just the generic rubric."
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
     return response
+
+
+def getBestModels(numModels: int = 3):
+    url = "http://localhost:3000/v1/receivers/slang-agent/models/best"
+    headers = {"skyfire-api-key": SKYFIRE_API_KEY, "content-type": "application/json"}
+    response = requests.get(url, headers=headers)
+    data = response.json()[:numModels]
+    modelsArray = [f"{item['developer']}/{item['model']}" for item in data[:numModels]]
+    if len(modelsArray) < 3:
+        modelsArray = [
+            "anthropic/claude-3.5-sonnet",
+            "meta-llama/llama-3-70b-instruct",
+            "openai/gpt-4o",
+        ]
+    return modelsArray
 
 
 def getOneModelResponse(prompt: str, model: str, sysPrompt: str):
@@ -114,12 +154,7 @@ def getOneModelResponse(prompt: str, model: str, sysPrompt: str):
 
 def getAllModelResponses(sysPrompt: str):
     prompt = "In English, write a brief (2 sentences max) conversational response to the prompt. Output just the response."
-    models = [
-        "anthropic/claude-3.5-sonnet",
-        "meta-llama/llama-3-70b-instruct",
-        "openai/gpt-4o",
-    ]  # TODO: change hardcode
-
+    models = getBestModels()
     responses = ""
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
