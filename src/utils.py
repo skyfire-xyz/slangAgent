@@ -5,7 +5,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from agentops import record_function, ActionEvent, record, LLMEvent
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 import concurrent.futures
 
@@ -33,8 +33,7 @@ class SkyfireAgent:
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
         startTime = (
-            datetime.utcfromtimestamp(time.time()).isoformat(timespec="milliseconds")
-            + "Z"
+            datetime.fromtimestamp(time.time(), tz=timezone.utc).isoformat(timespec="milliseconds")
         )
         raw_response = client.chat.completions.with_raw_response.create(
             model=_model,
@@ -80,7 +79,7 @@ def getOneModelResponse(prompt: str, model: str, sysPrompt: str):
     response = skyfire_agent.completion(prompt, model, sysPrompt)
     if response is None:
         return f"{model}:\nFailed to generate response\n"
-    return f"{model}:\n{response}\n"
+    return f"{model}:{response}\n"
 
 
 def getAllModelResponses(sysPrompt: str):
@@ -110,7 +109,7 @@ def getAllModelResponses(sysPrompt: str):
 
 
 def getBestResponse(prompt: str, criteria: str, responses: str):
-    prompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one. Limit line breaks."
+    prompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one."
     sysPrompt = f"{criteria=}\n{prompt=}\n{responses=}"
     response = skyfire_agent.completion(prompt, "gpt-4o", sysPrompt)
     return response
