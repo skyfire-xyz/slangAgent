@@ -45,7 +45,6 @@ class SkyfireAgent:
         )
         agentops.init(AGENT_OPS_API_KEY)
         response = raw_response.parse()
-<<<<<<< Updated upstream
         record(LLMEvent(
             init_timestamp = startTime,
             prompt=prompt,
@@ -65,22 +64,6 @@ class SkyfireAgent:
         logger.info(raw_response.headers)
         #logger.info(response)
         
-=======
-        record(
-            LLMEvent(
-                init_timestamp=startTime,
-                prompt=prompt,
-                prompt_tokens=response.usage.prompt_tokens,
-                completion=response.choices[0].message.content,
-                completion_tokens=response.usage.completion_tokens,
-                model=_model,
-            )
-        )
-        # logger.info('HIEU')
-        # logger.info(raw_response.headers)
-        # logger.info(response)
-
->>>>>>> Stashed changes
         return response.choices[0].message.content
 
 
@@ -141,16 +124,12 @@ def some_action(message):
 def main():
     # response = skyfire_agent.completion("What is 2+2", "openai/gpt-4o", "assistant")
     # print(response)
-<<<<<<< Updated upstream
-    print(getResponses("how did the chicken cross the road?"))
-=======
     print(getAllModelResponses("how did the chicken cross the road?"))
     agentops.record(
         ActionEvent(
             action_type="Agent says hello", params={"message": "Hi"}, returns="Hi Back!"
         )
     )
->>>>>>> Stashed changes
 
 
 if __name__ == "__main__":
