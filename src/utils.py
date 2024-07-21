@@ -49,8 +49,15 @@ class SkyfireAgent:
             completion_tokens=response.usage.completion_tokens,
             model=_model
         ))
+        record(ActionEvent(
+            action_type="Payment made to OPENROUTER", 
+            params={"claimID": raw_response.headers['skyfire-payment-claim-id'], 
+                                                              "amount": raw_response.headers['skyfire-payment-amount'],
+                                                              "currency": raw_response.headers['skyfire-payment-currency']}, 
+                                                              returns="SUCCESS"
+        ))
         # logger.info('HIEU')
-        #logger.info(raw_response.headers)
+        logger.info(raw_response.headers)
         #logger.info(response)
         
         return response.choices[0].message.content
@@ -99,11 +106,6 @@ def main():
     # response = skyfire_agent.completion("What is 2+2", "openai/gpt-4o", "assistant")
     # print(response)
     print(getResponses("how did the chicken cross the road?"))
-    agentops.record(
-        ActionEvent(
-            action_type="Agent says hello", params={"message": "Hi"}, returns="Hi Back!"
-        )
-    )
 
 
 if __name__ == "__main__":
