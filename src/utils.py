@@ -13,6 +13,8 @@ import requests
 import re
 import json
 from flask import abort
+import config
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("SlangClient")
 
@@ -112,7 +114,6 @@ class SkyfireAgent:
                 returns="SUCCESS",
             )
         )
-        # logger.info('HIEU')
         logger.info(raw_response.headers)
         return response.choices[0].message.content
 
@@ -133,18 +134,14 @@ def getCriteria(sysPrompt: str):
     return response
 
 
-def getBestModels(numModels: int = 3):
+def getBestModels(numModels: int = config.slang['models']['numModels']):
     url = "http://localhost:3000/v1/receivers/slang-agent/models/best"
     headers = {"skyfire-api-key": SKYFIRE_API_KEY, "content-type": "application/json"}
     response = requests.get(url, headers=headers)
     data = response.json()[:numModels]
     modelsArray = [f"{item['developer']}/{item['model']}" for item in data[:numModels]]
-    if len(modelsArray) < 3:
-        modelsArray = [
-            "anthropic/claude-3.5-sonnet",
-            "meta-llama/llama-3-70b-instruct",
-            "openai/gpt-4o",
-        ]
+    if len(modelsArray) < config.slang['models']['numModels']:
+        modelsArray = config.slang['models']['default']
     return modelsArray
 
 
@@ -186,16 +183,16 @@ def getBestResponse(prompt: str, criteria: str, responses: str):
     if match:
         # Extract the content inside the brackets
         content = match.group(1)
-        
+
         # Define the regex pattern to extract model names and scores
         model_score_pattern = r"([\w\-\/\.]+):\s*(\d+)"
-        
+
         # Find all matches in the content
         matches = re.findall(model_score_pattern, content)
-        
+
         # Print the extracted model names and scores
         for model, score in matches:
-            logger.info('SCORES EXTRACTED ', model, ' ', score )
+            logger.info("SCORES EXTRACTED ", model, " ", score)
             saveModelScore(prompt, score, model, response)
     else:
         logger.info("ERROR SCORES UNABLE TO BE STORED")
@@ -205,16 +202,11 @@ def getBestResponse(prompt: str, criteria: str, responses: str):
 
 def saveModelScore(prompt, score, modelName, responsePayload):
     url = "http://localhost:3000/v1/receivers/slang-agent/save-score"
-    headers = {
-        "skyfire-api-key": SKYFIRE_API_KEY,
-        "content-type": "application/json"
-    }
+    headers = {"skyfire-api-key": SKYFIRE_API_KEY, "content-type": "application/json"}
     data = {
         "prompt": prompt,
         "score": int(score),
         "modelName": modelName,
-        "responsePayload": responsePayload
+        "responsePayload": responsePayload,
     }
     response = requests.post(url, headers=headers, data=json.dumps(data))
-
-

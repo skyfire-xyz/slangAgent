@@ -1,5 +1,3 @@
-
-
 from flask import Flask, request, jsonify
 import logging
 import sys
@@ -24,10 +22,14 @@ def chat_slang_agent():
         "sourceName": "chloe",
         "destinationName": "SlangAgent",
         "amount": "1234",
-        "currency": "USDC"
+        "currency": "USDC",
     }
 
-    chatResponse = {"prompt": chatRequest["prompt"], "body": bestResponse, "payment": payment}
+    chatResponse = {
+        "prompt": chatRequest["prompt"],
+        "body": bestResponse,
+        "payment": payment,
+    }
     logger.info(chatResponse)
     return jsonify(chatResponse)
 
