@@ -81,7 +81,7 @@ class SkyfireAgent:
                 modelScore = item['averageScore']
         modelScore = str(modelScore)[:5]
 
-        if len(prompt) > 100:
+        if len(prompt) > 200:
             outputPrompt = sysprompt
         else: 
             outputPrompt = sysprompt + '\n' + prompt
