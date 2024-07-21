@@ -81,6 +81,11 @@ class SkyfireAgent:
                 modelScore = item['averageScore']
         modelScore = str(modelScore)[:5]
 
+        if len(prompt) > 100:
+            outputPrompt = sysprompt
+        else: 
+            outputPrompt = sysprompt + '\n' + prompt
+
         @track_agent(name=_model + ': average score is ' + modelScore)
         def createLLM_Event(
             startTime,
@@ -106,7 +111,7 @@ class SkyfireAgent:
         createLLM_Event(
             startLLM_call,
             endTime,
-            prompt,
+            outputPrompt,
             prompt_tokens,
             completion,
             completion_tokens,
