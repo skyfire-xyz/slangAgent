@@ -1,0 +1,38 @@
+{
+   "openai/gpt-4o" : {
+        "inputCost": 5,
+        "outputCost": 15
+    },
+    "meta-llama/llama-3-70b-instruct" : {
+        "inputCost": 0.81,
+        "outputCost": 0.81
+    },
+    "anthropic/claude-3.5-sonnet":{
+        "inputCost": 3,
+        "outputCost": 15
+    },
+    "sao10k/l3-stheno-8b":{
+        "inputCost": 0.25,
+        "outputCost": 1.5
+    },
+    "neversleep/noromaid-mixtral-8x7b-instruct": {
+        "inputCost":8,
+        "outputCost": 8
+    },
+    "microsoft/wizardlm-2-8x22b": {
+        "inputCost": 0.63,
+        "outputCost": 0.63
+    },
+    "deepseek/deepseek-chat":{
+        "inputCost": 0.14,
+        "outputCost": 0.28
+    },
+    "google/gemini-pro-1.5":{
+        "inputCost": 2.5,
+        "outputCost": 7.5
+    },
+    "cohere/command-r":{
+        "inputCost": 0.5,
+        "outputCost": 1.5
+    }
+}

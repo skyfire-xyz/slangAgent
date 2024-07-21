@@ -103,13 +103,22 @@ class SkyfireAgent:
         )
 
         claimId, amount, currency = self.getHeaders(raw_response=raw_response)
+        with open('modelCosts.json', 'r') as file:
+            data = json.load(file)
+        amountToPay = data[_model]['inputCost'] * prompt_tokens + data[_model]["outputCost"] * completion_tokens
         record(
             ActionEvent(
                 action_type="Payment made to OPENROUTER",
                 params={
                     "claimID": claimId,
-                    "amount": amount,
+                    "model" : _model,
+                    "amount paid": amountToPay/1000000,
                     "currency": currency,
+                    "input tokens used": prompt_tokens,
+                    "input token cost for " + _model: data[_model]['inputCost']/1000000,
+                    "output tokens used": completion_tokens,
+                    "output token cost for " + _model: data[_model]['outputCost']/1000000,
+                    
                 },
                 returns="SUCCESS",
             )
@@ -142,6 +151,9 @@ def getBestModels(numModels: int = config.slang['models']['numModels']):
     modelsArray = [f"{item['developer']}/{item['model']}" for item in data[:numModels]]
     if len(modelsArray) < config.slang['models']['numModels']:
         modelsArray = config.slang['models']['default']
+
+
+    
     return modelsArray
 
 
@@ -196,6 +208,18 @@ def getBestResponse(prompt: str, criteria: str, responses: str):
             saveModelScore(prompt, score, model, response)
     else:
         logger.info("ERROR SCORES UNABLE TO BE STORED")
+
+    amountToPaySlangAgent = (len(matches)+2)*1007
+    record(
+        ActionEvent(
+            action_type="Payment made to SlangAgent",
+            params={
+                "amount": amountToPaySlangAgent,
+                "currency": 'USDC'
+            },
+            returns="SUCCESS"
+        )
+    )
 
     return response
 
