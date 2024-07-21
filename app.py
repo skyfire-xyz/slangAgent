@@ -10,11 +10,6 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("Slang Agent")
 
 
-@app.route("/")
-def hello_world():
-    return "Hello, World!"
-
-
 @app.route("/v1/receivers/slang-agent", methods=["POST"])
 def chat_slang_agent():
     chatRequest = request.json
