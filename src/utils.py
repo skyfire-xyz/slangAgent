@@ -3,9 +3,10 @@ import os
 from agentops.agent import track_agent
 from openai import OpenAI
 from dotenv import load_dotenv
-from agentops import record_function, ActionEvent
+from agentops import record_function, ActionEvent, record, LLMEvent
 import logging
-
+from datetime import datetime
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("SlangClient")
@@ -16,8 +17,6 @@ AGENT_OPS_API_KEY = os.getenv("AGENT_OPS_API_KEY")
 
 OPEN_ROUTER = "OpenRouter"
 
-agentops.init(AGENT_OPS_API_KEY)
-
 client = OpenAI(
     default_headers={"Skyfire-API-Key": SKYFIRE_API_KEY},
     api_key=SKYFIRE_API_KEY,
@@ -25,7 +24,6 @@ client = OpenAI(
 )
 
 
-@track_agent(name="skyfire")
 class SkyfireAgent:
     def __init__(self, client):
         self.client = client
@@ -33,15 +31,29 @@ class SkyfireAgent:
     def completion(
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
-        raw_response = client.chat.completions.create(
+        startTime = datetime.utcfromtimestamp(time.time()).isoformat(timespec="milliseconds") + "Z"
+        raw_response = client.chat.completions.with_raw_response.create(
             model=_model,
             messages=[
                 {"role": "system", "content": sysprompt},
                 {"role": "user", "content": prompt},
             ],
         )
-        return raw_response.choices[0].message.content
-
+        agentops.init(AGENT_OPS_API_KEY)
+        response = raw_response.parse()
+        record(LLMEvent(
+            init_timestamp = startTime,
+            prompt=prompt,
+            prompt_tokens=response.usage.prompt_tokens,
+            completion=response.choices[0].message.content,
+            completion_tokens=response.usage.completion_tokens,
+            model=_model
+        ))
+        # logger.info('HIEU')
+        #logger.info(raw_response.headers)
+        #logger.info(response)
+        
+        return response.choices[0].message.content
 
 skyfire_agent = SkyfireAgent(client)
 

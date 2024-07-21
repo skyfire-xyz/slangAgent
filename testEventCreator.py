@@ -5,7 +5,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from agentops import record_function, ActionEvent, record, LLMEvent
 import logging
-
+from datetime import datetime
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("SlangClient")
@@ -32,6 +33,7 @@ class SkyfireAgent:
     def completion(
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
+        startTime = datetime.utcfromtimestamp(time.time()).isoformat(timespec="milliseconds") + "Z"
         raw_response = client.chat.completions.with_raw_response.create(
             model=_model,
             messages=[
@@ -42,15 +44,16 @@ class SkyfireAgent:
         agentops.init(AGENT_OPS_API_KEY)
         response = raw_response.parse()
         record(LLMEvent(
+            init_timestamp = startTime,
             prompt=prompt,
             prompt_tokens=response.usage.prompt_tokens,
             completion=response.choices[0].message.content,
             completion_tokens=response.usage.completion_tokens,
             model=_model
-        ) )
+        ))
         # logger.info('HIEU')
-        logger.info(raw_response.headers)
-        logger.info(response)
+        #logger.info(raw_response.headers)
+        #logger.info(response)
         
         return response.choices[0].message.content
 
