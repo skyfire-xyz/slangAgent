@@ -69,8 +69,19 @@ class SkyfireAgent:
         prompt_tokens = response.usage.prompt_tokens
         completion = response.choices[0].message.content
         completion_tokens = response.usage.completion_tokens
+        
+        url = "http://localhost:3000/v1/receivers/slang-agent/models/best"
+        headers = {"skyfire-api-key": SKYFIRE_API_KEY, "content-type": "application/json"}
+        responseScore = requests.get(url, headers=headers)
+        data = responseScore.json()
 
-        @track_agent(name=_model)
+        modelScore = 0
+        for item in data:
+            if item['model'] == _model.split('/')[-1]:
+                modelScore = item['averageScore']
+        modelScore = str(modelScore)[:5]
+
+        @track_agent(name=_model + ': average score is ' + modelScore)
         def createLLM_Event(
             startTime,
             endTime,
@@ -110,8 +121,9 @@ class SkyfireAgent:
             ActionEvent(
                 action_type="Payment made to OPENROUTER",
                 params={
-                    "claimID": claimId,
                     "model" : _model,
+                    "average score": modelScore,
+                    "claimID": claimId,
                     "amount paid": amountToPay/1000000,
                     "currency": currency,
                     "input tokens used": prompt_tokens,
