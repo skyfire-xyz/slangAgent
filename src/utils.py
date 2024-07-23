@@ -170,3 +170,19 @@ def createChatResponse(prompt: str, body: str, payment: dict):
         "body": body,
         "payment": payment,
     }
+
+
+def getTokensFromResponse(response):
+    return response.usage.prompt_tokens, response.usage.completion_tokens
+
+
+def loadSeededModelCosts():
+    with open("seed/model_costs_seed.json", "r") as file:
+        return json.load(file)
+
+
+def calculateCostFromTokens(costData, model, promptTokens, completionTokens):
+    return (
+        costData[model]["inputCost"] * promptTokens
+        + costData[model]["outputCost"] * completionTokens
+    )

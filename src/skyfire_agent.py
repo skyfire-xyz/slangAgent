@@ -1,10 +1,9 @@
-import json
 import logging
 import os
 
-import requests
 from dotenv import load_dotenv
-from openai import OpenAI
+
+import src.utils as utils
 
 logger = logging.getLogger("SlangClient")
 
@@ -16,12 +15,6 @@ BACKEND_HOST_URL = os.getenv("BACKEND_HOST_URL")
 class SkyfireAgent:
     def __init__(self, client):
         self.client = client
-
-    def get_headers(self, raw_response):
-        claim_id = raw_response.headers.get("skyfire-payment-claim-id", "Unknown")
-        amount = raw_response.headers.get("skyfire-payment-amount", "0")
-        currency = raw_response.headers.get("skyfire-payment-currency", "USD")
-        return claim_id, amount, currency
 
     def completion(
         self, prompt: str, model: str, sys_prompt="You are a helpful assistant."
@@ -36,27 +29,12 @@ class SkyfireAgent:
                 ],
             )
             response = raw_response.parse()
-            prompt_tokens = response.usage.prompt_tokens
-            completion = response.choices[0].message.content
-            completion_tokens = response.usage.completion_tokens
-
-            url = BACKEND_HOST_URL + "v1/receivers/slang-agent/models/best"
-            headers = {
-                "skyfire-api-key": SKYFIRE_API_KEY,
-                "content-type": "application/json",
-            }
-            response_score = requests.get(url, headers=headers)
-            cost_data = response_score.json()
-
-            with open("seed/model_costs_seed.json", "r") as file:
-                cost_data = json.load(file)
-
-            amount_to_pay = (
-                cost_data[model]["inputCost"] * prompt_tokens
-                + cost_data[model]["outputCost"] * completion_tokens
+            promptTokens, completionTokens = utils.getTokensFromResponse(response)
+            costData = utils.loadSeededModelCosts()
+            cost = utils.calculateCostFromTokens(
+                costData, model, promptTokens, completionTokens
             )
-            logger.info(f"Raw Response Headers: {raw_response.headers}")
-            return completion, amount_to_pay
+            return response.choices[0].message.content, cost
 
         except Exception as e:
             logger.error(f"Error in completion: {e}")
