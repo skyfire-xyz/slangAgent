@@ -1,6 +1,6 @@
 slang = dict(
     models=dict(
-        numModels=3,
+        numModels=6,
         default=[
             "openai/gpt-4o",
             "meta-llama/llama-3-70b-instruct",

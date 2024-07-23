@@ -19,7 +19,7 @@ def chat_slang_agent():
     payment = {
         "status": "SUCCESS",
         "destinationName": "SlangAgent",
-        "amount": str(1007 * config.slang['models']['numModels']),
+        "amount": str(2007 * config.slang["models"]["numModels"]),
         "currency": "USDC",
     }
 

@@ -43,9 +43,9 @@ class SkyfireAgent:
     def completion(
         self, prompt: str, _model: str, sysprompt="You are a helpful assistant."
     ):
-        startTime = datetime.fromtimestamp(time.time(), tz=timezone.utc).isoformat(
-            timespec="milliseconds"
-        )
+        startTime = datetime.fromtimestamp(
+            time.time(), tz=timezone.utc
+        ).isoformat(timespec="milliseconds")
         raw_response = client.chat.completions.with_raw_response.create(
             model=_model,
             messages=[
@@ -54,9 +54,9 @@ class SkyfireAgent:
             ],
         )
         agentops.init(AGENT_OPS_API_KEY)
-        bufferTime = datetime.fromtimestamp(time.time(), tz=timezone.utc).isoformat(
-            timespec="milliseconds"
-        )
+        bufferTime = datetime.fromtimestamp(
+            time.time(), tz=timezone.utc
+        ).isoformat(timespec="milliseconds")
         buffer = getBufferTime(startTime, bufferTime)
         response = raw_response.parse()
 
@@ -69,24 +69,27 @@ class SkyfireAgent:
         prompt_tokens = response.usage.prompt_tokens
         completion = response.choices[0].message.content
         completion_tokens = response.usage.completion_tokens
-        
+
         url = "http://localhost:3000/v1/receivers/slang-agent/models/best"
-        headers = {"skyfire-api-key": SKYFIRE_API_KEY, "content-type": "application/json"}
+        headers = {
+            "skyfire-api-key": SKYFIRE_API_KEY,
+            "content-type": "application/json",
+        }
         responseScore = requests.get(url, headers=headers)
         data = responseScore.json()
 
         modelScore = 0
         for item in data:
-            if item['model'] == _model.split('/')[-1]:
-                modelScore = item['averageScore']
+            if item["model"] == _model.split("/")[-1]:
+                modelScore = item["averageScore"]
         modelScore = str(modelScore)[:5]
 
         if len(prompt) > 200:
             outputPrompt = sysprompt
-        else: 
-            outputPrompt = sysprompt + '\n' + prompt
+        else:
+            outputPrompt = sysprompt + "\n" + prompt
 
-        @track_agent(name=_model + ': average score is ' + modelScore)
+        @track_agent(name=_model + ": average score is " + modelScore)
         def createLLM_Event(
             startTime,
             endTime,
@@ -119,23 +122,27 @@ class SkyfireAgent:
         )
 
         claimId, amount, currency = self.getHeaders(raw_response=raw_response)
-        with open('modelCosts.json', 'r') as file:
+        with open("modelCosts.json", "r") as file:
             data = json.load(file)
-        amountToPay = data[_model]['inputCost'] * prompt_tokens + data[_model]["outputCost"] * completion_tokens
+        amountToPay = (
+            data[_model]["inputCost"] * prompt_tokens
+            + data[_model]["outputCost"] * completion_tokens
+        )
         record(
             ActionEvent(
                 action_type="Payment made to OPENROUTER",
                 params={
-                    "model" : _model,
+                    "model": _model,
                     "average score": modelScore,
                     "claimID": claimId,
-                    "amount paid": amountToPay/1000000,
+                    "amount paid": amountToPay / 1000000,
                     "currency": currency,
                     "input tokens used": prompt_tokens,
-                    "input token cost for " + _model: data[_model]['inputCost']/1000000,
+                    "input token cost for "
+                    + _model: data[_model]["inputCost"] / 1000000,
                     "output tokens used": completion_tokens,
-                    "output token cost for " + _model: data[_model]['outputCost']/1000000,
-                    
+                    "output token cost for "
+                    + _model: data[_model]["outputCost"] / 1000000,
                 },
                 returns="SUCCESS",
             )
@@ -160,17 +167,19 @@ def getCriteria(prompt: str):
     return response
 
 
-def getBestModels(numModels: int = config.slang['models']['numModels']):
+def getBestModels(numModels: int = config.slang["models"]["numModels"]):
     url = "http://localhost:3000/v1/receivers/slang-agent/models/best"
-    headers = {"skyfire-api-key": SKYFIRE_API_KEY, "content-type": "application/json"}
+    headers = {
+        "skyfire-api-key": SKYFIRE_API_KEY,
+        "content-type": "application/json",
+    }
     response = requests.get(url, headers=headers)
     data = response.json()[:numModels]
-    modelsArray = [f"{item['developer']}/{item['model']}" for item in data[:numModels]]
-    if len(modelsArray) < config.slang['models']['numModels']:
-        modelsArray = config.slang['models']['default']
-
-
-    
+    modelsArray = [
+        f"{item['developer']}/{item['model']}" for item in data[:numModels]
+    ]
+    if len(modelsArray) < config.slang["models"]["numModels"]:
+        modelsArray = config.slang["models"]["default"]
     return modelsArray
 
 
@@ -187,7 +196,9 @@ def getAllModelResponses(prompt: str):
     responses = ""
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
-            executor.submit(getOneModelResponse, prompt, model, sysPrompt): model
+            executor.submit(
+                getOneModelResponse, prompt, model, sysPrompt
+            ): model
             for model in models
         }
         for future in concurrent.futures.as_completed(futures):
@@ -203,7 +214,7 @@ def getAllModelResponses(prompt: str):
 
 
 def getBestResponse(prompt: str, criteria: str, responses: str):
-    sysPrompt = "Use the criteria to score the responses to the prompt. Display each response from the prompt with its brief criteria scores. At the end, output the response with the highest score. If there is a tie, pick one."
+    sysPrompt = f"Use the criteria to score the responses to the prompt. At the end, output just the response with the highest score. If there is a tie, pick one. Output format: 'I scored {config.slang['models']['numModels']} responses.\n'[insert best response here without model names]'\n"
     prompt = f"{criteria=}\n{prompt=}\n{responses=}\n additionally output the model and there scores in the following format as the last line of your response: SCORES [modelName: score, modelName: score, ...]"
     response = skyfire_agent.completion(prompt, "openai/gpt-4o", sysPrompt)
 
@@ -219,15 +230,12 @@ def getBestResponse(prompt: str, criteria: str, responses: str):
     else:
         logger.info("ERROR SCORES UNABLE TO BE STORED")
 
-    amountToPaySlangAgent = (len(matches)+2)*1007
+    amountToPaySlangAgent = (len(matches) + 2) * 1007
     record(
         ActionEvent(
             action_type="Payment made to SlangAgent",
-            params={
-                "amount": amountToPaySlangAgent,
-                "currency": 'USDC'
-            },
-            returns="SUCCESS"
+            params={"amount": amountToPaySlangAgent, "currency": "USDC"},
+            returns="SUCCESS",
         )
     )
 
@@ -236,7 +244,10 @@ def getBestResponse(prompt: str, criteria: str, responses: str):
 
 def saveModelScore(prompt, score, modelName, responsePayload):
     url = "http://localhost:3000/v1/receivers/slang-agent/save-score"
-    headers = {"skyfire-api-key": SKYFIRE_API_KEY, "content-type": "application/json"}
+    headers = {
+        "skyfire-api-key": SKYFIRE_API_KEY,
+        "content-type": "application/json",
+    }
     data = {
         "prompt": prompt,
         "score": int(score),
