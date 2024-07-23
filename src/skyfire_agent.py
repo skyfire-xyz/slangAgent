@@ -1,11 +1,17 @@
 import json
 import logging
 import os
+
 import requests
+from dotenv import load_dotenv
 from openai import OpenAI
 
 logger = logging.getLogger("SlangClient")
+
+load_dotenv()
+SKYFIRE_API_KEY = os.getenv("SKYFIRE_API_KEY")
 BACKEND_HOST_URL = os.getenv("BACKEND_HOST_URL")
+
 
 class SkyfireAgent:
     def __init__(self, client):
@@ -17,7 +23,9 @@ class SkyfireAgent:
         currency = raw_response.headers.get("skyfire-payment-currency", "USD")
         return claim_id, amount, currency
 
-    def completion(self, prompt: str, model: str, sys_prompt="You are a helpful assistant."):
+    def completion(
+        self, prompt: str, model: str, sys_prompt="You are a helpful assistant."
+    ):
         """Generate a completion response from the model."""
         try:
             raw_response = self.client.chat.completions.with_raw_response.create(
@@ -32,9 +40,9 @@ class SkyfireAgent:
             completion = response.choices[0].message.content
             completion_tokens = response.usage.completion_tokens
 
-            url = os.getenv("BACKEND_HOST_URL") + "v1/receivers/slang-agent/models/best"
+            url = BACKEND_HOST_URL + "v1/receivers/slang-agent/models/best"
             headers = {
-                "skyfire-api-key": os.getenv("SKYFIRE_API_KEY"),
+                "skyfire-api-key": SKYFIRE_API_KEY,
                 "content-type": "application/json",
             }
             response_score = requests.get(url, headers=headers)
@@ -48,7 +56,7 @@ class SkyfireAgent:
                 + cost_data[model]["outputCost"] * completion_tokens
             )
             logger.info(f"Raw Response Headers: {raw_response.headers}")
-            return completion
+            return completion, amount_to_pay
 
         except Exception as e:
             logger.error(f"Error in completion: {e}")
