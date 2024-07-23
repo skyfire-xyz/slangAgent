@@ -6,7 +6,7 @@ import src.utils as utils
 
 app = Flask("Slang Agent")
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("Slang Agent")
+logger = logging.getLogger("SlangAgent")
 
 
 @app.route("/v1/receivers/slang-agent", methods=["POST"])
