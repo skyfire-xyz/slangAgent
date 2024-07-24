@@ -2,9 +2,7 @@ import concurrent.futures
 import json
 import logging
 import os
-import re
 
-import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -47,20 +45,6 @@ def getCriteria(prompt: str):
     return response, cost
 
 
-def getBestModels(numModels: int = config.slang["models"]["num"]):
-    url = BACKEND_HOST_URL + "v1/receivers/slang-agent/models/best"
-    headers = {
-        "skyfire-api-key": SKYFIRE_API_KEY,
-        "content-type": "application/json",
-    }
-    response = requests.get(url, headers=headers)
-    data = response.json()[:numModels]
-    models = [f"{item['developer']}/{item['model']}" for item in data[:numModels]]
-    if len(models) < numModels:
-        models = config.slang["models"]["default"]
-    return models
-
-
 def getOneModelResponse(prompt: str, model: str, sysPrompt: str):
     response, cost = skyfire_agent.completion(prompt, model, sysPrompt)
     if response is None:
@@ -73,7 +57,7 @@ def getAllModelResponses(prompt: str):
         "In English, write a brief (2 sentences max) conversational"
         " response to the prompt. Output just the response."
     )
-    models = getBestModels()
+    models = config.slang["models"]["default"]
     responses = ""
     costs = {}
 
@@ -98,40 +82,7 @@ def getAllModelResponses(prompt: str):
     return responses, costs
 
 
-def saveOneModelScore(prompt, score, modelName, responsePayload):
-    try:
-        url = BACKEND_HOST_URL + "v1/receivers/slang-agent/save-score"
-        headers = {
-            "skyfire-api-key": SKYFIRE_API_KEY,
-            "content-type": "application/json",
-        }
-        data = {
-            "prompt": prompt,
-            "score": int(score),
-            "modelName": modelName,
-            "responsePayload": responsePayload,
-        }
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        response.raise_for_status()
-    except Exception as e:
-        logger.error(f"Error saving model score: {e}")
-
-
-def saveAllModelScores(prompt, response):
-    pattern = r"SCORES.*\[(.*)\]"
-    match = re.search(pattern, response)
-    if match:
-        content = match.group(1)
-        model_score_pattern = r"([\w\-\/\.]+):\s*(\d+)"
-        matches = re.findall(model_score_pattern, content)
-        for model, score in matches:
-            logger.info(f"Assigned score {score} to model: {model}")
-            saveOneModelScore(prompt, score, model, response)
-    else:
-        raise ValueError("Error: Unable to extract scores from the response.")
-
-
-def getBestResponse(prompt: str, criteria: str, responses: str):
+def getScoredResponses(prompt: str, criteria: str, responses: str):
     sysPrompt = (
         "Use the criteria to score the responses to the prompt. At the end, "
         "output just the response with the highest score. If there is a tie, pick one. "
@@ -146,7 +97,6 @@ def getBestResponse(prompt: str, criteria: str, responses: str):
     gradingModel = config.slang["models"]["grader"]
     response, cost = skyfire_agent.completion(prompt, gradingModel, sysPrompt)
 
-    saveAllModelScores(prompt, response)
     return response, cost
 
 

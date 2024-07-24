@@ -17,7 +17,7 @@ def chat_slang_agent():
         chatRequest = request.json
         criteria, criteriaCost = utils.getCriteria(chatRequest["prompt"])
         allResponses, modelCosts = utils.getAllModelResponses(chatRequest["prompt"])
-        bestModelResponse, gradingCost = utils.getBestResponse(
+        bestModelResponse, gradingCost = utils.getScoredResponses(
             chatRequest["prompt"], criteria, allResponses
         )
         paymentPayload = utils.createPaymentPayload(
