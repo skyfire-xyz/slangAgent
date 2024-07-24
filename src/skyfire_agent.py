@@ -21,12 +21,8 @@ class SkyfireAgent:
                     {"role": "user", "content": prompt},
                 ],
             )
+            cost = int(raw_response.headers["skyfire-payment-amount"])
             response = raw_response.parse()
-            promptTokens, completionTokens = utils.getTokensFromResponse(response)
-            costData = utils.loadSeededModelCosts()
-            cost = utils.calculateCostFromTokens(
-                costData, model, promptTokens, completionTokens
-            )
             return response.choices[0].message.content, cost
 
         except Exception as e:
