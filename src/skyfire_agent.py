@@ -1,15 +1,8 @@
 import logging
-import os
-
-from dotenv import load_dotenv
 
 import src.utils as utils
 
 logger = logging.getLogger("SlangClient")
-
-load_dotenv()
-SKYFIRE_API_KEY = os.getenv("SKYFIRE_API_KEY")
-BACKEND_HOST_URL = os.getenv("BACKEND_HOST_URL")
 
 
 class SkyfireAgent:

@@ -2,7 +2,6 @@ import logging
 
 from flask import Flask, jsonify, request
 
-import src.config as config
 import src.utils as utils
 from src.constants import FAILURE, SUCCESS
 

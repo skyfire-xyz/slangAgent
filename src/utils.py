@@ -15,10 +15,9 @@ logger = logging.getLogger("SlangClient")
 
 load_dotenv()
 SKYFIRE_API_KEY = os.getenv("SKYFIRE_API_KEY")
-BACKEND_HOST_URL = os.getenv("BACKEND_HOST_URL")
 
-if not SKYFIRE_API_KEY or not BACKEND_HOST_URL:
-    logger.error("Missing environment variables: SKYFIRE_API_KEY or BACKEND_HOST_URL")
+if not SKYFIRE_API_KEY:
+    logger.error("Missing environment variable: SKYFIRE_API_KEY")
     raise EnvironmentError("Required environment variables are missing")
 
 # Initialize the OpenAI client with custom settings.
@@ -28,7 +27,7 @@ if not SKYFIRE_API_KEY or not BACKEND_HOST_URL:
 client = OpenAI(
     default_headers={"Skyfire-API-Key": SKYFIRE_API_KEY},
     api_key=SKYFIRE_API_KEY,
-    base_url=BACKEND_HOST_URL + "proxy/openrouter/v1",
+    base_url="https://api.skyfire.xyz/proxy/openrouter/v1",
 )
 
 
