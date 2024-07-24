@@ -1,6 +1,6 @@
 slang = dict(
     models=dict(
-        num=6,
+        num=3,
         default=[
             "microsoft/wizardlm-2-8x22b",
             "meta-llama/llama-3-70b-instruct",
