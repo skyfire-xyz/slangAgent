@@ -2,3 +2,4 @@ Flask
 python-dotenv
 agentops
 openai
+skyfire-sdk
