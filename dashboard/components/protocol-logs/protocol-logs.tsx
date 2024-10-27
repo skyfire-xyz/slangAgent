@@ -28,7 +28,7 @@ export default function ProtocolLogs({}: ProtocolLogsProps) {
   }, [shouldScrollToBottom]);
 
   // The URL for the ChatGPT logo
-  const chatGptLogoUrl = "/images/aichat/logo-chatgpt.svg";
+  const chatGptLogoUrl = "/slangagent-icon.svg";
 
   return (
     <div

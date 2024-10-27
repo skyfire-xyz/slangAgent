@@ -14,16 +14,6 @@ interface AiChatProps {
 export default function AiChat({ images }: AiChatProps) {
   const t = useTranslations("ai");
 
-  // const userAvatarImageData = getStrapiDataAttributes(
-  //   images?.find((data) => data.attributes.name === "userAvatar")
-  // );
-  // const botAvatarImageData = getStrapiDataAttributes(
-  //   images?.find((data) => data.attributes.name === "botAvatar")
-  // );
-  // const botImageData = getStrapiDataAttributes(
-  //   images?.find((data) => data.attributes.name === "botImageWide")
-  // );
-
   const userAvatarImageData = { url: "" };
   const botAvatarImageData = { url: "" };
   const botImageData = { url: "" };
@@ -31,22 +21,17 @@ export default function AiChat({ images }: AiChatProps) {
   return (
     <div className="0 h-full flex-grow">
       <div className="container mx-auto h-full rounded-lg shadow-lg">
-        <div className="h-full justify-between rounded-lg bg-white sm:flex-col md:flex md:flex-row">
+        <div className="h-full justify-between rounded-lg bg-[#0d0d12] sm:flex-col md:flex md:flex-row">
           <ChatPanel
             userImageUrl={
               userAvatarImageData?.url || "/images/aichat/defaultUser.png"
             }
             robotImageUrl={
-              botAvatarImageData?.url || "/images/aichat/ai-robot.png"
+              botAvatarImageData?.url || "/images/aichat/slangagent-icon.png"
             }
           />
           <div className="hidden w-2/5 border-l-2 px-5 pt-5 md:block">
             <div className="flex h-full flex-col">
-              {/* <img
-                src={botImageData?.url || "/images/aichat/ai-robot-flat.png"}
-                className="w-240px h-28 rounded-xl object-cover"
-                alt=""
-              /> */}
               <p className="mb-2 mt-4 font-bold">
                 <Link
                   href="https://www.oklink.com/amoy/address/0x45c83889BD84D5FB77039B67C30695878f506313/token-transfer"
