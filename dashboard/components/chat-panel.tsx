@@ -115,14 +115,14 @@ export default function ChatPane(props: any) {
       ///////////////////////////////////////////////////////////
       // Regular Chat Request
       ///////////////////////////////////////////////////////////
-      // dispatch(
-      //   postChat({
-      //     chatType: "chat",
-      //     data: {
-      //       prompt: inputText,
-      //     },
-      //   }),
-      // );
+      dispatch(
+        postChat({
+          chatType: "chat",
+          data: {
+            prompt: inputText,
+          },
+        }),
+      );
 
       if (ev.preventDefault) ev.preventDefault();
     }
