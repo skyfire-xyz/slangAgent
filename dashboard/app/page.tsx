@@ -1,9 +1,4 @@
-import { TrendingUp } from "lucide-react"
-
-import { Card, CardContent } from "@/components/ui/card"
-
 import Hero from "./detail/[id]/components/hero"
-import { DataTable } from "./table"
 
 export default function IndexPage() {
   return (

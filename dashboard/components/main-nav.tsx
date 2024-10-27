@@ -14,7 +14,7 @@ export function MainNav({ items }: MainNavProps) {
     <div className="flex gap-6 md:gap-10">
       <Link href="/" className="flex items-center space-x-2">
         <Image
-          src="/pricing-culture-logo.png"
+          src="/slangagent-logo.svg"
           alt="logo"
           width={200}
           height={30}

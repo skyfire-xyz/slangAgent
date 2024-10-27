@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig
 
 export const siteConfig = {
-  name: "Skyfire - Pricing Culture Demo",
+  name: "Skyfire - SlangAgent",
   description: "",
   mainNav: [
     {
@@ -10,6 +10,6 @@ export const siteConfig = {
     },
   ],
   links: {
-    github: "https://github.com/skyfire-xyz/demo-pricing-culture",
+    github: "https://github.com/skyfire-xyz/slangAgent",
   },
 }
