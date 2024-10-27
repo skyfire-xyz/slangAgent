@@ -6,7 +6,6 @@ import { UseChatHelpers } from "ai/react"
 import { AxiosResponse } from "axios"
 import { AlertCircle, ChevronDown } from "lucide-react"
 
-import { usePricingCulture } from "@/lib/pricing-culture/context"
 import { getUrlParameter } from "@/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -46,7 +45,6 @@ export default function Component({
   } = aiChatProps
   const urlSearchParams = useSearchParams()
   const path = usePathname()
-  const { selectedComp } = usePricingCulture()
   const responses = useSkyfireResponses(path)
 
   const customResponse = useMemo(() => {
