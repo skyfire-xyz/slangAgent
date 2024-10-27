@@ -1,6 +1,8 @@
 import Markdown from "react-markdown";
 import fileDownload from "js-file-download";
 import { Button } from "flowbite-react";
+import { FaRegClipboard } from "react-icons/fa";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 interface ChatGeneralProps {
@@ -19,10 +21,33 @@ function ChatGeneral({
   children,
 }: ChatGeneralProps) {
   const t = useTranslations("ai");
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(textMessage || "");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Reset copied state after 2 seconds
+  };
+
   if (direction === "right") {
     return (
       <div className="mb-4 flex justify-end">
-        <div className="mr-2 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl bg-gray-400 px-4 py-3">
+        <div className="mr-2 w-full max-w-[75%] rounded-lg bg-gray-600 px-6 py-4 md:max-w-[80%]">
+          <div className="text-xs font-bold text-gray-300 mb-1 flex items-center justify-between">
+            <span>You</span>
+            <div className="flex items-center">
+              {copied && (
+                <div className="mr-2 text-xs text-green-500">Copied!</div>
+              )}
+              <button
+                onClick={handleCopy}
+                className="ml-2 text-gray-400 hover:text-white"
+                title="Copy to clipboard"
+              >
+                <FaRegClipboard />
+              </button>
+            </div>
+          </div>
           <article className="prose whitespace-pre-wrap text-white">
             <Markdown>{textMessage}</Markdown>
           </article>
@@ -37,13 +62,28 @@ function ChatGeneral({
   }
 
   return (
-    <div className={`mb-4 flex justify-start`}>
+    <div className="mb-4 flex justify-start">
       <img
         src={avatarUrl}
         className="h-10 w-10 rounded-full object-cover"
         alt=""
       />
-      <div className="ml-2 max-w-[calc(100%-80px)] rounded-br-3xl rounded-tl-xl rounded-tr-3xl bg-[#009182] px-4 py-3 md:max-w-[400px]">
+      <div className="ml-2 w-full max-w-[75%] rounded-lg bg-gray-800 px-6 py-4 md:max-w-[80%]">
+        <div className="text-xs font-bold text-gray-300 mb-1 flex items-center justify-between">
+          <span>SlangAgent</span>
+          <div className="flex items-center">
+            {copied && (
+              <div className="mr-2 text-xs text-green-500">Copied!</div>
+            )}
+            <button
+              onClick={handleCopy}
+              className="ml-2 text-gray-400 hover:text-white"
+              title="Copy to clipboard"
+            >
+              <FaRegClipboard />
+            </button>
+          </div>
+        </div>
         <article className="prose whitespace-pre-wrap text-white">
           <Markdown>{textMessage}</Markdown>
         </article>
@@ -52,7 +92,8 @@ function ChatGeneral({
           <div>
             <img
               src={contentImageUrl}
-              className="w-90 h-90 mt-4 rounded-xl object-cover"
+              className="w-full h-auto mt-4 rounded-lg object-cover"
+              alt=""
             />
             <div className="mx-auto mt-2 flex justify-center gap-2">
               <Button
