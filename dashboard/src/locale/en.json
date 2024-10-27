@@ -1,0 +1,38 @@
+{
+  "ai": {
+    "page": {
+      "title": "Aida.AI",
+      "poweredBy": "Powered by Skyfire Payments",
+      "chatPlaceholder": "type your message here...",
+      "chatSignIn": "Set up required",
+      "titleExamplePrompts": "Example prompts",
+      "titlePaymentLogs": "Payment Protocol Logs"
+    },
+    "examplePrompts": {
+      "search": "<b>Search dataset</b>: baseball",
+      "image": "<b>Random image</b>: happy baby",
+      "generateImage": "<b>Generate image</b>: baby panda",
+      "taskList": "<b>Tasklist</b>: create a fairytale book",
+      "websearch": "<b>WebSearch</b>: national parks",
+      "videosearch": "<b>VideoSearch</b>: view the eclipse",
+      "other": "Other prompts"
+    },
+    "aiPrompt": {
+      "": "",
+      "defaultGreeting": "Hello! How can I assist you today?",
+      "errorMessage": "Sorry, something went wrong.",
+      "textAnalyzeDataset": "Analyze dataset: {dataset}",
+      "textDownloadDataset": "Download dataset: {dataset}",
+      "textExecuteTasks": "Execute all tasks for {task}",
+      "textTasklist": "Download dataset: {dataset}",
+      "textVisitAdminDashboard": "Visit [admin dashboard](/admin) to join network",
+      "btnDownloadImage": "Download Image",
+      "btnShowMore": "Show More"
+    },
+    "paymentLogs": {
+      "textQuote": "{destination} quote {amount}",
+      "textQuotePaidTo": "{amount}{currency} paid to {destination}",
+      "textQuoteRejected": "Quote rejected. {errorMessage}"
+    }
+  }
+}
